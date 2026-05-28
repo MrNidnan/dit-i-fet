@@ -57,10 +57,11 @@ interface Elements {
   options: HTMLElement;
   feedback: HTMLElement;
   feedbackState: HTMLElement;
-  feedbackAnswer: HTMLElement;
   feedbackMeaning: HTMLElement;
   feedbackExampleRow: HTMLElement;
   feedbackExample: HTMLElement;
+  feedbackSinonimsRow: HTMLElement;
+  feedbackSinonims: HTMLElement;
   nextButton: HTMLButtonElement;
   resultPanel: HTMLElement;
   resultScore: HTMLElement;
@@ -207,10 +208,11 @@ function requireElements(): Elements {
     options: get<HTMLElement>("[data-options]"),
     feedback: get<HTMLElement>("[data-feedback]"),
     feedbackState: get<HTMLElement>("[data-feedback-state]"),
-    feedbackAnswer: get<HTMLElement>("[data-feedback-answer]"),
     feedbackMeaning: get<HTMLElement>("[data-feedback-meaning]"),
     feedbackExampleRow: get<HTMLElement>("[data-feedback-example-row]"),
     feedbackExample: get<HTMLElement>("[data-feedback-example]"),
+    feedbackSinonimsRow: get<HTMLElement>("[data-feedback-sinonims-row]"),
+    feedbackSinonims: get<HTMLElement>("[data-feedback-sinonims]"),
     nextButton: get<HTMLButtonElement>("[data-next-button]"),
     resultPanel: get<HTMLElement>("[data-panel='result']"),
     resultScore: get<HTMLElement>("[data-result-score]"),
@@ -385,6 +387,7 @@ function chooseRounds(pool: Phrase[]): QuizRound[] {
       example: phrase.example,
       difficulty: phrase.difficulty,
       options: buildOptions(phrase.correctConcept, pool),
+      sinonims: phrase.sinonims,
     });
   }
 
@@ -399,6 +402,7 @@ function chooseRounds(pool: Phrase[]): QuizRound[] {
       example: bonusPhrase.example,
       difficulty: bonusPhrase.difficulty,
       options: buildOptions(bonusPhrase.correctConcept, pool),
+      sinonims: bonusPhrase.sinonims,
       isBonus: true,
     });
   }
@@ -486,10 +490,11 @@ function showFeedback(round: QuizRound, answer: RoundAnswer): void {
   ui.feedbackState.textContent = answer.isCorrect
     ? "Correcte!"
     : "No és correcte";
-  ui.feedbackAnswer.textContent = round.correctConcept;
   ui.feedbackMeaning.textContent = round.meaning;
   ui.feedbackExample.textContent = round.example ?? "";
   ui.feedbackExampleRow.hidden = !round.example;
+  ui.feedbackSinonims.textContent = round.sinonims.join(", ");
+  ui.feedbackSinonimsRow.hidden = round.sinonims.length === 0;
   ui.nextButton.hidden = false;
 }
 

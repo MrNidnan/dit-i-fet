@@ -8,6 +8,7 @@ export interface CsvRow {
   example: string;
   difficulty: string;
   tags: string;
+  sinonims: string;
 }
 
 export interface Phrase {
@@ -18,6 +19,7 @@ export interface Phrase {
   example: string | null;
   difficulty: Difficulty;
   tags: string[];
+  sinonims: string[];
 }
 
 export interface QuizRound {
@@ -29,6 +31,7 @@ export interface QuizRound {
   example: string | null;
   difficulty: Difficulty;
   options: string[];
+  sinonims: string[];
   isBonus?: boolean;
 }
 

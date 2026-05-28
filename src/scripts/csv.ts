@@ -10,6 +10,8 @@ const REQUIRED_COLUMNS = [
   "tags",
 ] as const;
 
+const OPTIONAL_COLUMNS = ["sinonims"] as const;
+
 function splitCsvRows(source: string): string[] {
   const rows: string[] = [];
   let current = "";
@@ -110,7 +112,8 @@ function parseCsv(text: string): CsvRow[] {
 
     header.forEach((column, index) => {
       if (
-        REQUIRED_COLUMNS.includes(column as (typeof REQUIRED_COLUMNS)[number])
+        REQUIRED_COLUMNS.includes(column as (typeof REQUIRED_COLUMNS)[number]) ||
+        OPTIONAL_COLUMNS.includes(column as (typeof OPTIONAL_COLUMNS)[number])
       ) {
         record[column as keyof CsvRow] = values[index] ?? "";
       }
@@ -124,6 +127,7 @@ function parseCsv(text: string): CsvRow[] {
       example: record.example ?? "",
       difficulty: record.difficulty ?? "",
       tags: record.tags ?? "",
+      sinonims: record.sinonims ?? "",
     };
   });
 }
@@ -158,6 +162,10 @@ function normalizePhrase(row: CsvRow): Phrase | null {
     tags: row.tags
       .split(",")
       .map((tag) => tag.trim())
+      .filter(Boolean),
+    sinonims: row.sinonims
+      .split(",")
+      .map((sinonim) => sinonim.trim())
       .filter(Boolean),
   };
 }
