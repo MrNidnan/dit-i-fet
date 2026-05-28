@@ -21,7 +21,7 @@ import type {
   RoundAnswer,
 } from "../types";
 
-const DEV_MAIN_ROUNDS = 3;
+const DEV_MAIN_ROUNDS = 15;
 const FEEDBACK_REVEAL_DELAY_MS = 120;
 const NEXT_BUTTON_REVEAL_DELAY_MS = 420;
 const FALLBACK_DISTRACTORS = [
@@ -309,6 +309,41 @@ function getFeedbackMessage(score: number, totalRounds: number): string {
   return "Has fet una primera volta útil. Torna-hi i fixa't en els significats.";
 }
 
+function getCurrentWinningStreak(sessionToInspect: GameSession | null): number {
+  if (!sessionToInspect) {
+    return 0;
+  }
+
+  let streak = 0;
+
+  for (
+    let index = sessionToInspect.selectedAnswers.length - 1;
+    index >= 0;
+    index -= 1
+  ) {
+    if (!sessionToInspect.selectedAnswers[index]?.isCorrect) {
+      break;
+    }
+
+    streak += 1;
+  }
+
+  return streak;
+}
+
+function getFeedbackStateMessage(answer: RoundAnswer): string {
+  if (!answer.isCorrect) {
+    return "No és correcte";
+  }
+
+  const winningStreak = getCurrentWinningStreak(session);
+  if (winningStreak > 0 && winningStreak % 5 === 0) {
+    return "Correcte! Ànim! Premi per al final!";
+  }
+
+  return "Correcte!";
+}
+
 function buildDifficultyPattern(roundCount: number): Difficulty[] {
   return Array.from({ length: roundCount }, (_, index) => {
     if (index < 5) {
@@ -580,9 +615,7 @@ function showFeedback(round: QuizRound, answer: RoundAnswer): void {
   ui.feedback.hidden = false;
   ui.nextButton.hidden = false;
   ui.feedback.dataset.tone = answer.isCorrect ? "correct" : "wrong";
-  ui.feedbackState.textContent = answer.isCorrect
-    ? "Correcte!"
-    : "No és correcte";
+  ui.feedbackState.textContent = getFeedbackStateMessage(answer);
   ui.feedbackMeaning.textContent = round.meaning;
   ui.feedbackExample.textContent = round.example ?? "";
   ui.feedbackExampleRow.hidden = !round.example;
