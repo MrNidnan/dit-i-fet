@@ -22,6 +22,8 @@ import type {
 } from "../types";
 
 const DEV_MAIN_ROUNDS = 3;
+const FEEDBACK_REVEAL_DELAY_MS = 120;
+const NEXT_BUTTON_REVEAL_DELAY_MS = 420;
 const FALLBACK_DISTRACTORS = [
   "Alegria",
   "Por",
@@ -75,6 +77,7 @@ interface Elements {
 let phrases: Phrase[] = [];
 let session: GameSession | null = null;
 let elements: Elements | null = null;
+let nextButtonRevealTimeout: number | null = null;
 
 function getResolvedPlayerName(): string {
   const ui = requireElements();
@@ -121,6 +124,56 @@ function applyTheme(theme: "light" | "dark"): void {
   if (colorSchemeMeta) {
     colorSchemeMeta.setAttribute("content", theme);
   }
+}
+
+function prefersReducedMotion(): boolean {
+  return globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function clearNextButtonRevealTimeout(): void {
+  if (nextButtonRevealTimeout !== null) {
+    globalThis.clearTimeout(nextButtonRevealTimeout);
+    nextButtonRevealTimeout = null;
+  }
+}
+
+function triggerScorePulse(): void {
+  const ui = requireElements();
+
+  if (prefersReducedMotion()) {
+    return;
+  }
+
+  ui.scoreValue.getAnimations().forEach((animation) => {
+    animation.cancel();
+  });
+
+  ui.scoreValue.animate(
+    [
+      { transform: "scale(1)", color: "var(--ink)" },
+      { transform: "scale(1.14)", color: "var(--correct)", offset: 0.45 },
+      { transform: "scale(1)", color: "var(--ink)" },
+    ],
+    {
+      duration: 420,
+      easing: "ease-out",
+    },
+  );
+}
+
+function revealNextButton(): void {
+  const ui = requireElements();
+  const delay = prefersReducedMotion() ? 0 : NEXT_BUTTON_REVEAL_DELAY_MS;
+
+  clearNextButtonRevealTimeout();
+  delete ui.nextButton.dataset.visible;
+
+  nextButtonRevealTimeout = globalThis.setTimeout(() => {
+    requestAnimationFrame(() => {
+      ui.nextButton.dataset.visible = "true";
+    });
+    nextButtonRevealTimeout = null;
+  }, delay);
 }
 
 function updateThemeToggle(): void {
@@ -227,6 +280,8 @@ function requireElements(): Elements {
 }
 
 function hideAllPanels(): void {
+  clearNextButtonRevealTimeout();
+
   const ui = requireElements();
   ui.loadingPanel.hidden = true;
   ui.errorPanel.hidden = true;
@@ -453,31 +508,68 @@ function persistSession(): void {
   saveSession(session);
 }
 
+function applyOptionState(
+  button: HTMLButtonElement,
+  round: QuizRound,
+  selectedAnswer?: RoundAnswer,
+): void {
+  const option = button.dataset.optionValue ?? "";
+  const isSelected = selectedAnswer?.selectedConcept === option;
+  const isCorrect = round.correctConcept === option;
+
+  delete button.dataset.state;
+
+  if (selectedAnswer) {
+    button.disabled = true;
+    button.setAttribute("aria-disabled", "true");
+
+    if (isSelected) {
+      button.dataset.state = selectedAnswer.isCorrect ? "correct" : "wrong";
+    } else if (isCorrect) {
+      button.dataset.state = "correct-answer";
+    }
+
+    return;
+  }
+
+  button.disabled = false;
+  button.removeAttribute("aria-disabled");
+}
+
 function renderOptions(round: QuizRound, selectedAnswer?: RoundAnswer): void {
   const ui = requireElements();
+
+  const existingButtons = Array.from(
+    ui.options.querySelectorAll<HTMLButtonElement>(".option-button"),
+  );
+  const canReuseButtons =
+    existingButtons.length === round.options.length &&
+    existingButtons.every(
+      (button, index) => button.dataset.optionValue === round.options[index],
+    );
+
+  if (canReuseButtons) {
+    existingButtons.forEach((button) => {
+      applyOptionState(button, round, selectedAnswer);
+    });
+    return;
+  }
+
   ui.options.replaceChildren();
 
   for (const option of round.options) {
     const button = document.createElement("button");
-    const isSelected = selectedAnswer?.selectedConcept === option;
-    const isCorrect = round.correctConcept === option;
 
     button.type = "button";
     button.className = "option-button";
     button.textContent = option;
     button.dataset.optionValue = option;
 
-    if (selectedAnswer) {
-      button.disabled = true;
-      button.setAttribute("aria-disabled", "true");
-      if (isSelected) {
-        button.dataset.state = selectedAnswer.isCorrect ? "correct" : "wrong";
-      } else if (isCorrect) {
-        button.dataset.state = "correct-answer";
-      }
-    } else {
+    if (!selectedAnswer) {
       button.addEventListener("click", () => handleAnswer(option));
     }
+
+    applyOptionState(button, round, selectedAnswer);
 
     ui.options.append(button);
   }
@@ -486,6 +578,7 @@ function renderOptions(round: QuizRound, selectedAnswer?: RoundAnswer): void {
 function showFeedback(round: QuizRound, answer: RoundAnswer): void {
   const ui = requireElements();
   ui.feedback.hidden = false;
+  ui.nextButton.hidden = false;
   ui.feedback.dataset.tone = answer.isCorrect ? "correct" : "wrong";
   ui.feedbackState.textContent = answer.isCorrect
     ? "Correcte!"
@@ -495,7 +588,18 @@ function showFeedback(round: QuizRound, answer: RoundAnswer): void {
   ui.feedbackExampleRow.hidden = !round.example;
   ui.feedbackSinonims.textContent = round.sinonims.join(", ");
   ui.feedbackSinonimsRow.hidden = round.sinonims.length === 0;
-  ui.nextButton.hidden = false;
+
+  delete ui.feedback.dataset.visible;
+  requestAnimationFrame(() => {
+    const secondFrameDelay = prefersReducedMotion()
+      ? 0
+      : FEEDBACK_REVEAL_DELAY_MS;
+    globalThis.setTimeout(() => {
+      ui.feedback.dataset.visible = "true";
+    }, secondFrameDelay);
+  });
+
+  revealNextButton();
 }
 
 function renderRound(): void {
@@ -525,6 +629,8 @@ function renderRound(): void {
   ui.feedback.hidden = true;
   ui.nextButton.hidden = true;
   delete ui.feedback.dataset.tone;
+  delete ui.feedback.dataset.visible;
+  delete ui.nextButton.dataset.visible;
   updateProgress();
   updateLogoutVisibility();
   renderOptions(round, existingAnswer);
@@ -652,9 +758,11 @@ function handleAnswer(selectedConcept: string): void {
 
   persistSession();
   updateProgress();
+  if (answer.isCorrect) {
+    triggerScorePulse();
+  }
   renderOptions(round, answer);
   showFeedback(round, answer);
-  requireElements().nextButton.focus();
 }
 
 function handleNextRound(): void {

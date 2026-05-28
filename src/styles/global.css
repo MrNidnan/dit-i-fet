@@ -254,7 +254,7 @@ h2 {
   font: inherit;
   font-weight: 700;
   text-align: left;
-  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
 }
 
 .button {
@@ -325,7 +325,7 @@ h2 {
 }
 
 .button:hover,
-.option-button:hover,
+.option-button:not(:disabled):hover,
 .theme-option:hover,
 .logout-button:hover {
   transform: translateY(-1px);
@@ -343,15 +343,25 @@ h2 {
   cursor: pointer;
 }
 
+.option-button:not(:disabled):active {
+  transform: scale(0.985);
+}
+
 .option-button[data-state="correct"],
 .option-button[data-state="correct-answer"] {
   border-color: rgba(27, 107, 71, 0.32);
   background: rgba(27, 107, 71, 0.12);
+  box-shadow: 0 0 0 1px rgba(27, 107, 71, 0.14), 0 12px 24px rgba(27, 107, 71, 0.08);
 }
 
 .option-button[data-state="wrong"] {
   border-color: rgba(154, 47, 47, 0.32);
   background: rgba(154, 47, 47, 0.12);
+  box-shadow: 0 0 0 1px rgba(154, 47, 47, 0.14), 0 12px 24px rgba(154, 47, 47, 0.08);
+}
+
+.option-button[data-state] {
+  animation: option-settle 240ms ease-out;
 }
 
 .option-button::after {
@@ -381,6 +391,14 @@ h2 {
   border-radius: var(--radius-lg);
   border: 1px solid rgba(76, 56, 37, 0.12);
   background: color-mix(in srgb, var(--surface-strong) 82%, transparent);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 220ms ease, transform 220ms ease, border-color 160ms ease;
+}
+
+.feedback[data-visible="true"] {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .feedback[data-tone="correct"] {
@@ -394,6 +412,19 @@ h2 {
 .feedback__state {
   margin-top: 0;
   font-weight: 800;
+}
+
+.game-actions .button:not([hidden]) {
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity 360ms ease, transform 460ms ease;
+}
+
+.game-actions .button[data-visible="true"] {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
 .phrase {
@@ -437,6 +468,7 @@ h2 {
 .result-grid strong {
   display: block;
   font-size: 1.25rem;
+  transform-origin: center;
 }
 
 .result-grid span {
@@ -456,6 +488,38 @@ h2 {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes option-settle {
+  0% {
+    transform: scale(0.98);
+  }
+  60% {
+    transform: scale(1.01);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .option-button,
+  .theme-option,
+  .logout-button,
+  .feedback {
+    transition-duration: 0ms;
+  }
+
+  .option-button[data-state],
+  .game-actions .button[data-visible="true"] {
+    animation: none;
+  }
+
+  .feedback {
+    opacity: 1;
+    transform: none;
   }
 }
 
