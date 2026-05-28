@@ -1,0 +1,142 @@
+---
+---
+
+<section class="shell" data-game-root>
+  <div class="shell__backdrop" aria-hidden="true"></div>
+
+  <article class="card">
+    <header class="card__header">
+      <div>
+        <p class="eyebrow">Dit-i-Fet</p>
+        <h1>Frases Fetes</h1>
+        <p class="lede">Endevina el concepte correcte i completa la partida sense sortir del navegador.</p>
+      </div>
+
+      <div class="header-tools">
+        <div class="toolbar-actions">
+          <div class="theme-selector" role="group" aria-label="Selector de tema">
+            <button
+              class="theme-option"
+              type="button"
+              data-theme-option="light"
+              aria-pressed="false"
+              aria-label="Activa el mode clar"
+            >
+              <span aria-hidden="true">☀</span>
+            </button>
+            <button
+              class="theme-option"
+              type="button"
+              data-theme-option="dark"
+              aria-pressed="false"
+              aria-label="Activa el mode fosc"
+            >
+              <span aria-hidden="true">☾</span>
+            </button>
+          </div>
+
+          <button
+            class="logout-button"
+            type="button"
+            data-logout-button
+            hidden
+            aria-label="Canvia d'usuari"
+            title="Canvia d'usuari"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M12 11.25a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Zm0 2.25c-3.31 0-6 2.24-6 5v1.5h12V18.5c0-2.76-2.69-5-6-5Z"
+                fill="currentColor"
+              ></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="meta" data-scoreboard hidden>
+          <p class="meta__item">
+            <span class="meta__label">Ronda</span>
+            <strong data-progress-value>0/0</strong>
+          </p>
+          <p class="meta__item">
+            <span class="meta__label">Punts</span>
+            <strong data-score-value>0</strong>
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <section class="panel" data-panel="loading">
+      <p class="status">Carregant frases...</p>
+    </section>
+
+    <section class="panel" data-panel="error" hidden>
+      <h2>No s'ha pogut carregar el joc</h2>
+      <p data-error-message></p>
+    </section>
+
+    <section class="panel panel--intro" data-panel="intro" hidden>
+      <div class="intro-copy">
+        <p class="eyebrow">Benvinguda</p>
+        <h2 data-intro-heading>Comencem</h2>
+        <p data-intro-message>Escriu el teu nom per començar la partida.</p>
+      </div>
+
+      <form class="name-form" data-player-form>
+        <label for="player-name">Com et dius?</label>
+        <input id="player-name" name="playerName" type="text" autocomplete="given-name" maxlength="40" required />
+        <button class="button button--primary" type="submit">Comença la partida</button>
+      </form>
+
+      <div class="intro-actions" data-returning-actions hidden>
+        <button class="button button--primary" type="button" data-continue-button>Continua la partida</button>
+        <button class="button button--secondary" type="button" data-new-game-button>Nova partida</button>
+      </div>
+    </section>
+
+    <section class="panel panel--game" data-panel="game" hidden>
+      <header class="round-head">
+        <p class="round-label" data-round-label>1/15</p>
+        <p class="prompt">Tria el significat correcte</p>
+      </header>
+
+      <h2 class="phrase" data-phrase>Fer-ne cinc cèntims</h2>
+
+      <div class="options" data-options role="group" aria-label="Opcions de resposta"></div>
+
+      <section class="feedback" data-feedback hidden aria-live="polite" tabindex="-1">
+        <p class="feedback__state" data-feedback-state></p>
+        <p><strong>Resposta correcta:</strong> <span data-feedback-answer></span></p>
+        <p><strong>Significat:</strong> <span data-feedback-meaning></span></p>
+        <p data-feedback-example-row hidden><strong>Exemple:</strong> <span data-feedback-example></span></p>
+      </section>
+
+      <div class="game-actions">
+        <button class="button button--primary" type="button" data-next-button hidden>Següent</button>
+      </div>
+    </section>
+
+    <section class="panel panel--result" data-panel="result" hidden>
+      <p class="eyebrow">Partida acabada</p>
+      <h2>Resultat final</h2>
+      <div class="result-grid">
+        <p><strong data-result-score>0</strong><span>Punts</span></p>
+        <p><strong data-result-correct>0</strong><span>Encerts</span></p>
+        <p><strong data-result-percent>0%</strong><span>Percentatge</span></p>
+      </div>
+      <figure class="result-reward" data-result-reward hidden>
+        <img src="/resources/mestre_frases_fetes.jpg" alt="Guardó Mestre de les frases fetes" loading="lazy" />
+        <figcaption>Has superat la ronda bonus i t'has guanyat el títol de mestre de les frases fetes.</figcaption>
+      </figure>
+      <p class="result-message" data-result-message></p>
+      <button class="button button--primary" type="button" data-restart-button>Torna a jugar</button>
+    </section>
+  </article>
+
+  <script>
+    import "../scripts/game.ts";
+  </script>
+</section>

@@ -1,0 +1,47 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = "Frases Fetes",
+  description = "Joc estàtic per practicar frases fetes en català amb un CSV públic descarregable."
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="ca">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="color-scheme" content="light dark" />
+    <script is:inline>
+      (() => {
+        try {
+          const storedTheme = localStorage.getItem("frases-fetes.theme");
+          const colorSchemeMeta = document.querySelector('meta[name="color-scheme"]');
+
+          if (storedTheme === "light" || storedTheme === "dark") {
+            document.documentElement.dataset.theme = storedTheme;
+            if (colorSchemeMeta) {
+              colorSchemeMeta.setAttribute("content", storedTheme);
+            }
+          }
+        } catch {
+          // Ignore storage access issues and keep system preference.
+        }
+      })();
+    </script>
+    <title>{title}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Salta al contingut</a>
+    <main id="content" tabindex="-1">
+      <slot />
+    </main>
+  </body>
+</html>
